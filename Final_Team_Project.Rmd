@@ -1,0 +1,59 @@
+---
+title: "Final Team Project"
+author: "Mitchell Fuchs, Lando Schwerdtfeger, Nick Lo, Maria Gonzalez, Tomas Llopart"
+date: "2025-11-19"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    highlight: tango
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+# Step 0 - Why?
+
+# Step 1 & 2 - Load and Clean the Data
+
+# Step 3 - Split the Data
+
+# Step 4 - Build the Models
+
+# Step 5 - Predict the Models
+
+We estimated three Support Vector Machine models using linear, radial, and polynomial kernels.  
+The purpose of this module is to evaluate how different kernel functions perform on our scaled feature set.  
+To keep the workflow modular and reproducible, all SVM training and evaluation steps are contained in the external script `SVM_Model.R`.
+
+```{r DT_cm}
+source("Data/split_data.R")
+source("Models/Decision_Tree.R")
+
+# Display results
+cm_dt
+```
+
+
+```{r SVM_cm}
+source("Data/split_data.R")
+source("Models/SVM_Model.R")
+best_cm
+
+```
+
+The highest accuracy indicates the best-performing SVM kernel for this dataset.  
+Below we display the confusion matrix for the best model, as well as a comparison plot across all kernels.
+
+
+# Step 6 - Evaluate the Models
+
+
+# Step 7 - Implement final Model
