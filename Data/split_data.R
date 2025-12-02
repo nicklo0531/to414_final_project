@@ -1,12 +1,4 @@
 library(dplyr)
-library(png)
-library(grid)
-library(ggplot2)
-
-shots <- read.csv("data/shots.csv")
-
-set.seed(12345)
-shots_sample <- shots[sample(nrow(shots), size = 0.10 * nrow(shots)), ]
 
 # Remove target from predictors and create dummy variables
 shots_no_goal <- shots_sample %>% select(-goal)
@@ -43,7 +35,7 @@ rink_img <- readPNG("Images/rink.png")
 g <- rasterGrob(rink_img, width = unit(1,"npc"), height = unit(1,"npc"))
 
 # Plot shot locations on top of rink
-ggplot(shots_made, aes(x = xCord, y = yCord)) +
+plot <- ggplot(shots_made, aes(x = xCord, y = yCord)) +
   annotation_custom(g, xmin = min(shots_made$xCord), xmax = max(shots_made$xCord),
                     ymin = min(shots_made$yCord), ymax = max(shots_made$yCord)) +
   geom_point(color = "red", alpha = 0.6, size = 0.2) +
@@ -52,3 +44,5 @@ ggplot(shots_made, aes(x = xCord, y = yCord)) +
        x = "X Coordinate",
        y = "Y Coordinate") +
   theme_void()
+
+plot

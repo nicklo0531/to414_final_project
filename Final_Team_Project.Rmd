@@ -54,7 +54,8 @@ To capitalize on this demand, our model creates the potential for an automated "
 The original data set had over 1.7 million observations; for simplicity (and the fact that it took over a minute to read in the data every time we knitted the project), we decided to run our models on ONLY the 2022 season data and also removed any shot that was taken on an empty net, since those would not be useful.
 
 ```{r load_data}
-
+source("Data/clean_data.R")
+plot
 ```
 
 # Step 2 - Clean the Data
