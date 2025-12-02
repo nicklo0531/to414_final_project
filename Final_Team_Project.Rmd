@@ -41,6 +41,12 @@ source("Models/Decision_Tree.R")
 cm_dt
 ```
 
+```{r}
+source("Data/split_data.R")
+source("Models/KNN_Model.R")
+cm_knn
+```
+
 
 ```{r SVM_cm}
 source("Data/split_data.R")
