@@ -2,14 +2,17 @@ library(dplyr)
 
 shots <- read.csv("data/shots.csv")
 
+set.seed(12345)
+shots_sample <- shots[sample(nrow(shots), size = 0.10 * nrow(shots)), ]
+
 # Remove target from predictors and create dummy variables
-shots_no_goal <- shots %>% select(-goal)
+shots_no_goal <- shots_sample %>% select(-goal)
 shots_dum <- as.data.frame(model.matrix(~ . - 1, data = shots_no_goal))
 
 # Min-max scaling
 minmax <- function(x) (x - min(x)) / (max(x) - min(x))
 shots_scaled <- as.data.frame(lapply(shots_dum, minmax))
-shots_scaled$goal <- shots$goal
+shots_scaled$goal <- shots_sample$goal
 
 # Features and target
 X <- shots_scaled %>% select(-goal)
