@@ -21,3 +21,6 @@ svm_cm <- confusionMatrix(pred, y_test, positive = "1")
 
 # Display results
 svm_cm
+
+# Save trained SVM model for Shiny
+saveRDS(svm_model, file = "Models/svm_model.rds")

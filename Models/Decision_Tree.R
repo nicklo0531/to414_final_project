@@ -13,3 +13,6 @@ test_dt$goal <- factor(test_dt$goal, levels = c(0,1))
 
 cm_dt <- confusionMatrix(pred_dt, test_dt$goal, positive = "1")
 cm_dt
+
+# Save trained Decision Tree model for Shiny
+saveRDS(dt_model, file = "Models/dt_model.rds")
