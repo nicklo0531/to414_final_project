@@ -17,7 +17,7 @@ svm_model <- svm(y_train ~ ., data = train_df, kernel = "linear", cost = 1, prob
 pred <- factor(predict(svm_model, X_test), levels = c(0,1))
 
 # Confusion matrix
-best_cm <- confusionMatrix(pred, y_test, positive = "1")
+svm_cm <- confusionMatrix(pred, y_test, positive = "1")
 
 # Display results
-best_cm
+svm_cm
