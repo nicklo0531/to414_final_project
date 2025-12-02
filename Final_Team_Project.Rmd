@@ -71,6 +71,8 @@ We did a 50% training - 50% testing split because of how much data we are workin
 
 ```{r source_splits}
 source("Data/split_data.R")
+train_df <- cbind(y_train = y_train, X_train)
+test_df <- cbind(y_test = y_test, X_test)
 ```
 
 
@@ -108,10 +110,21 @@ source("Models/KNN_Model.R")
 cm_knn
 ```
 
+```{r predict_ANN}
+source("Data/split_data.R")
+source("Models/ANN_Model.R")
+```
 
 ```{r predict_SVM}
 source("Data/split_data.R")
 source("Models/SVM_Model.R")
+```
+
+```{r predict_RF}
+source("Data/split_data.R")
+source("Models/Random_Forest.R")
+
+cm_rf
 ```
 
 ADAPT WRITE-UP:
