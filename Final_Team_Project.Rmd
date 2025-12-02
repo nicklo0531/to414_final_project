@@ -11,6 +11,7 @@ output:
     highlight: tango
     theme: cerulean
     code_folding: hide
+    
 ---
 
 ```{r setup, include=FALSE}
@@ -19,26 +20,86 @@ knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 ```
 
+<style>
+#watermark-logo {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 120px;
+  opacity: 1;
+  z-index: 9999;
+}
+</style>
+
+<img id="watermark-logo" src="Images/NHL.png">
+
+![](Images/Red_Wings.jpeg)
+
 # Step 0 - Why?
 
-# Step 1 & 2 - Load and Clean the Data
+The primary application of our predictive model is to function as a strategic consulting tool for NHL coaching staffs and general managers. At its core, these models predict the probability of a goal occuring on any given shot event (a metric also known as "Expected Goals" or "xG"). The fundamental business problem this solves is the separation of process from results. In a low-scoring sport like hockey, game outcomes are often decided by random variance or "puck luck", which can obscure the true quality of a team's play. We will use both spacial and game-contextual variables to provide teams with the objective truth regarding whether or not they were actually playing efficiently, or if they were simply the beneficiaries of variance (i.e. "getting lucky"). This distinction can be used as a foundational piece of roster construction and in-game tactical analysis.
+
+To put this into practice, our model acts as a tactical audit for two key areas of the game: defensive structure and offensive discipline. On the defensive side, we use the model to measure the actual value of "crowding", which is the strategy of packing the area directly in front of the net with defenders to clog up shooting lanes and deny easy access to the goal. One key way the models are able to do this is by isolating the impact of having extra defenders between the puck and the net; with this, we can quantify the risk-reward of aggressive systems. By calculating the precise spike in goal probability that occurs when a defender is effectively removed from the play (simulating a defensive breakdown or odd-man rush), we can validate whether a conservative, collapsing structure is better than a high-pressure scheme that risks leaving the zone under-manned.
+
+Furthermore, these models can help "audit" offensive shot selection. By isolating the impact of shot distance and angle, we can understand how efficient a team is with the puck in their possession. Since goal probability does not decay linearly as distance increases or if angles become more acute/closer to the ground, we can identify exacly when players are settling for poor shots. Depending on the roster personnel, we can argue for a strategic shift to changing these low-percentage shots into passes rather than stat-padding.
+
+Finally, while constructing a full roster model is outside the realm of our specific project and dataset, the data generate by our models could be used as a foundational layer for a "Moneyball" style approach to player acquisition and roster construction. For example, a general manager could use our model to identify which players are getting unlucky (high xG) through their hockey IQ or physical attributes, but suffering due to an unlucky streak. By acquiring undervalued asset(s) before their luck regresses to the mean, an NHL front office could exploit this and assemble a team that is projected to outperform its payroll.
+
+Beyond team operations, another lucrative application for our models lies in the exploding market of "micro-betting", also known as in-game or live wager. Just as NFL bettors can now bet on wehtehr the next play will be a first down snag, a run swallowed by the D-line for a loss, or a game-breaking interception, our models provide the infrastructure to bring this same granularity to the NHL. Currently, hockey remains an untapped frontier for this specific type of betting, focusing more on static outcomes like moneylines, spreads, and game totals for goals. While these traditional markets are efficient for predicting the final result, they fail to engage the bettor during the action itself, leaving a massive gap in engagement between the opening face-off and the final horn. We think that bettors in today's market would love to have the ability to bet on frequent in-game events rather than putting money down before the game and passively waiting for the outcome without being able to wager on anything in between.
+
+To capitlize on this demand, our model creates the potneital for an automated "Next Goall" API. By continuously looking at in-game patterns using real-time data on defensive manpower and positioning, our system could give sportsbooks the tech they need to offer a market for upcoming shots, something most books currently aren't doing. If we licensed this to a major operator, it would let fans bet on the outcome of a single possession while it is actually happening. The real value here is the ability to price these high-leverage moments instantly, like when the defense forces a turnover and has a breakaway, or an untimely line change leads to a strong opportunity for the offense. Our model is designed to spot the spike in goal probability and immediately adjust the betting line before the play even finishes. THis would help sportsbooks keep their markets for hockey open non-stop, allowing for hundreds of individual betting events to keep users hooked. 
+
+# Step 1 - Load the Data
+
+The original data set had over 1.7 million observations; for simplicity (and the fact that it took over a minute to read in the data every time we knitted the project), we decided to run our models on ONLY the 2022 season data and also removed any shot that was taken on an empty net, since those would not be useful.
+
+```{r load_data}
+
+```
+
+# Step 2 - Clean the Data
+
+The variables below were very rare (less than 5 times each) and made it so that the logistc regression model could not run properly without removal, since they were not in either the training or testing data.
+
+```{r source_data}
+source("Data/clean_data.R")
+```
 
 # Step 3 - Split the Data
 
+We did a 50% training - 50% testing split because of how much data we are working with and for run-time sake. For the stacked model, we split into 70/30.
+
+```{r source_splits}
+source("Data/split_data.R")
+```
+
+
 # Step 4 - Build the Models
 
+WRITE-UP:
+Explain process, 
+
+```{r}
+#source models or something
+```
+
+
 # Step 5 - Predict the Models
+
+ADAPT WRITE-UP:
 
 We estimated three Support Vector Machine models using linear, radial, and polynomial kernels.  
 The purpose of this module is to evaluate how different kernel functions perform on our scaled feature set.  
 To keep the workflow modular and reproducible, all SVM training and evaluation steps are contained in the external script `SVM_Model.R`.
 
-```{r DT_cm}
+-- I split it into different code blocks so that it can run independently. --
+
+```{r predict_DT}
+#source predictions
+
 source("Data/split_data.R")
 source("Models/Decision_Tree.R")
 
-# Display results
-cm_dt
 ```
 
 ```{r}
@@ -48,18 +109,37 @@ cm_knn
 ```
 
 
-```{r SVM_cm}
+```{r predict_SVM}
 source("Data/split_data.R")
 source("Models/SVM_Model.R")
-best_cm
-
 ```
 
+ADAPT WRITE-UP:
 The highest accuracy indicates the best-performing SVM kernel for this dataset.  
 Below we display the confusion matrix for the best model, as well as a comparison plot across all kernels.
 
 
 # Step 6 - Evaluate the Models
 
+WRITE-UP 
+
+```{r Evaluate cm}
+# Display results
+cm_dt
+svm_cm
+```
+
+ADAPT WRITE UP:
+The logistic regression results provide the validation needed for our consulting product in terms of optimizing defensive structure. The variable "homeSkatersOnIce" emerged as a dominant predictor with a coefficient of -.8545 (p value < 2e^-16), showing that (since home/away does not matter) that the crowding defensive strategy is the single most effective way to suppress goals. Of course, a team may be better or worse at it, depending on their personnel. However, a front office should use this to understand why a player who frequently finds themselves down low by the goal is a beneficial addition to their squad, regardless of their offensive ability. This confirms that the risk of aggressive pressure systems can be severe, demonstrating that a defensive breakdown that essentially removes a skater off the ice and out of the play can cause a spike in goal probability so drastic that many teams are likely better off prioritizing a conservative, collapsed structure to maintain the advantage closer to the net.
+
+On the offensive side, the model showed that shotDistance and shotAngleAdjusted were significant negative variables to the probability of a goal (coefficients of -.0876 and -.0071 respectively). However, the most actionable insight came from specific shot types. shotTypeWrap (wrap-around hots) was very heavily penalized while shotTypeSLAP was shown to be a significant strong positive predictor (+.608). This supports our "Moneyball" roster advice, so that players who frequently take wrap-around shots to pad their number of shots on goal are a waste of money. We can also discuss with the coaching staff to make sure these are effectively removed from players' repertoire of moves, as they are much better passing it off, preferably for a slapshot. 
+Lastly, for our "Next Goal" betting API, the model identified a critical pricing trigger in player fatigue in the variable shooterTimeOnIceSinceFaceoff (coefficient of -.0054). Offensive efficiency gets considerably worse the longer a player remains on the ice, which could lead to large amounts of money being placed on a goal happening soon, not realizing that the personnel on the ice hasn't changed for 60+ seconds. We can effectively lengthen the odds (make them payout more if the event happens since it is less likely), allowing the sportsbook to profit from most of the public being unable to correctly track this information. We can also use the information from above regarding slapshots; if the 5 skaters on ice are frequently taking slapshots and the goalie is relatively worse at defending against them, or defending against their rebounds, we can shorten the odds to make sure the books aren't losing money on high-probability scoring situations.
+
 
 # Step 7 - Implement final Model
+
+WRITE-UP
+
+```{r Implement}
+
+```
