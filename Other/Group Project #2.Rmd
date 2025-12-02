@@ -1,0 +1,221 @@
+---
+title: 'Group Project #2'
+author: "X"
+date: "2025-10-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load some useful libraries:
+
+```{r}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+install.packages("car")
+library(skimr)
+library(tidyverse)
+library(caret)
+library(fastDummies)
+library(class)
+library(ggplot2)
+library(scales)
+library(C50)
+library(neuralnet)
+library(e1071)
+library(png)
+library(grid)
+library(car)
+```
+
+## Step 0 - What is our business question/problem?
+
+We're planning on working as a hockey training and coaching clinic, so figuring out what makes shots more likely to score directly impacts how we teach players to shoot and how we train goalies to make saves. We can use this data to coach shooters on creating high-percentage scoring chances while also teaching goalies to recognize and stop those same dangerous shot situations. Later in the project, we might incorporate some of the other variables to entertain the idea of partnering with an NHL or NCAA team to provide specialized training programs and strategic consultation.
+
+## Step 1 - Load Data
+
+The original data set had over 1.7 million observations; for simplicity (and the fact that it took over a minute to read in the data every time we knitted the project), we decided to run our models on ONLY the 2022 season data and also removed any shot that was taken on an empty net, since those would not be useful.
+
+```{r}
+shots <- read.csv("shots_2022_no_empty_net.csv")
+```
+
+## Step 2 - Clean Data
+
+Many of the variables were either useless (shotID, homeTeamCode, etc) or were very small game-based details that we felt should have minimal impact on the (defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff, defendingTeamMinTimeOnIceOfForwardsSinceFaceoff, etc) result of a shot, but could increase overfitting. We removed these below.
+
+```{r}
+shots$shotID <- NULL
+shots$homeTeamCode <- NULL
+shots$awayTeamCode <- NULL
+shots$isPlayoffGame <- NULL
+shots$game_id <- NULL
+shots$homeTeamWon <- NULL
+shots$id <- NULL
+shots$id <- NULL
+shots$timeUntilNextEvent <- NULL
+shots$shotPlayContinuedInZone <- NULL
+shots$shotPlayContinuedOutsideZone <- NULL
+shots$shotGoalieFroze <- NULL
+shots$shotPlayStopped <- NULL
+shots$shotGeneratedRebound <- NULL
+shots$playerNumThatDidEvent <- NULL
+shots$playerNumThatDidLastEvent <- NULL
+shots$goalieIdForShot <- NULL
+shots$goalieNameForShot <- NULL
+shots$shooterPlayerId <- NULL
+shots$shooterName <- NULL
+shots$shootingTeamForwardsOnIce <- NULL
+shots$shootingTeamDefencemenOnIce <- NULL
+shots$shootingTeamAverageTimeOnIceOfForwards <- NULL
+shots$shootingTeamAverageTimeOnIceOfDefencemen <- NULL
+shots$shootingTeamMaxTimeOnIce <- NULL
+shots$shootingTeamMaxTimeOnIceOfForwards <- NULL
+shots$shootingTeamMaxTimeOnIceOfDefencemen <- NULL
+shots$shootingTeamMinTimeOnIce <- NULL
+shots$shootingTeamMinTimeOnIceOfForwards <- NULL
+shots$shootingTeamMinTimeOnIceOfDefencemen <- NULL
+shots$shootingTeamAverageTimeOnIceSinceFaceoff <- NULL
+shots$shootingTeamAverageTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$shootingTeamAverageTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$shootingTeamMaxTimeOnIceSinceFaceoff <- NULL
+shots$shootingTeamMaxTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$shootingTeamMaxTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$shootingTeamMinTimeOnIceSinceFaceoff <- NULL
+shots$shootingTeamMinTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$shootingTeamMinTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$defendingTeamForwardsOnIce <- NULL
+shots$defendingTeamDefencemenOnIce <- NULL
+shots$defendingTeamAverageTimeOnIceOfForwards <- NULL
+shots$defendingTeamAverageTimeOnIceOfDefencemen <- NULL
+shots$defendingTeamMaxTimeOnIce <- NULL
+shots$defendingTeamMaxTimeOnIceOfForwards <- NULL
+shots$defendingTeamMaxTimeOnIceOfDefencemen <- NULL
+shots$defendingTeamMinTimeOnIce <- NULL
+shots$defendingTeamMinTimeOnIceOfForwards <- NULL
+shots$defendingTeamMinTimeOnIceOfDefencemen <- NULL
+shots$defendingTeamAverageTimeOnIceSinceFaceoff <- NULL
+shots$defendingTeamAverageTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$defendingTeamAverageTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$defendingTeamMaxTimeOnIceSinceFaceoff <- NULL
+shots$defendingTeamMaxTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$defendingTeamMaxTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$defendingTeamMinTimeOnIceSinceFaceoff <- NULL
+shots$defendingTeamMinTimeOnIceOfForwardsSinceFaceoff <- NULL
+shots$defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff <- NULL
+shots$arenaAdjustedShotDistance <- NULL
+shots$arenaAdjustedXCord <- NULL
+shots$arenaAdjustedXCordABS <- NULL
+shots$arenaAdjustedYCord <- NULL
+shots$arenaAdjustedYCordAbs <- NULL
+shots$xGoal <- NULL
+shots$xFroze <- NULL
+shots$xRebound <- NULL
+shots$xPlayContinuedInZone <- NULL
+shots$xPlayContinuedOutsideZone <- NULL
+shots$xPlayStopped <- NULL
+shots$xShotWasOnGoal <- NULL
+shots$event <- NULL
+shots$shotWasOnGoal <- NULL
+shots$teamCode <- NULL
+shots$season <- NULL
+shots$period <- as.factor(shots$period)
+shots$team <- as.factor(shots$team)
+shots$location <- as.factor(shots$location)
+shots$shotOnEmptyNet <- NULL
+shots$awayPenalty1Length <- NULL
+shots$homePenalty1Length <- NULL
+shots$shotAngleReboundRoyalRoad <- as.factor(shots$shotAngleReboundRoyalRoad)
+shots$shotType <- as.factor(shots$shotType)
+shots$shotRebound <- as.factor(shots$shotRebound)
+shots$shotRush <- as.factor(shots$shotRush)
+shots$lastEventCategory <- as.factor(shots$lastEventCategory)
+shots$lastEventTeam <- as.factor(shots$lastEventTeam)
+shots$homeEmptyNet <- as.factor(shots$homeEmptyNet)
+shots$awayEmptyNet <- as.factor(shots$awayEmptyNet)
+shots$playerPositionThatDidEvent <- as.factor(shots$playerPositionThatDidEvent)
+shots$shooterLeftRight <- as.factor(shots$shooterLeftRight)
+shots$offWing <- as.factor(shots$offWing)
+shots$isHomeTeam <- as.factor(shots$isHomeTeam)
+shots$goal <- as.factor(shots$goal)
+
+shots$isHomeTeam <- NULL
+shots$xCord <- NULL
+shots$yCord <- NULL
+shots$shotAngle <- NULL
+shots$isHomeTeam <- NULL
+shots$avgTOI_diff <- shots$shootingTeamAverageTimeOnIce - shots$defendingTeamAverageTimeOnIce
+shots$shootingTeamAverageTimeOnIce <- NULL
+shots$defendingTeamAverageTimeOnIce <- NULL
+
+shots$lastEventxCord <- NULL
+shots$lastEventyCord <- NULL
+shots$lastEventTeam <- NULL
+
+shots$time <- NULL
+shots$team <- NULL
+shots$xCordAdjusted <- NULL
+shots$lastEventxCord_adjusted <- NULL
+shots$distanceFromLastEvent <- NULL
+
+shots$shooterTimeOnIceSinceFaceoff <- NULL
+
+str(shots)
+```
+
+## Step 3 - Split Data
+
+We did a 75-25 split for simplicity. Given that we are working with more data, it may be beneficial to use a larger training sample (80-85%) in the future.
+
+```{r}
+train_split = .75
+set.seed(12345)
+train_rows <- sample(1:nrow(shots), nrow(shots) * train_split)
+
+shots_train <- shots[train_rows,]
+shots_test <- shots[-train_rows,]
+
+summary(shots_train)
+```
+
+## Step 4 - Build preliminary regression model
+
+```{r}
+library(car)
+m1 <- glm(goal ~., data = shots_train, family = "binomial")
+summary(m1)
+vif(m1)
+```
+
+## Step 5 - Use model to predict
+```{r}
+shots_pred_m1 <- predict(m1, shots_test, type="response")
+shots_pred_binary_m1 <- ifelse(shots_pred_m1 >= .1, 1, 0)
+summary(shots_pred_binary_m1)
+
+m3 <- glm(goal ~ 
+             shotDistance * shotAngleAdjusted +
+             offWing * shotAngleAdjusted +
+             shotRebound * shotDistance +
+             shotRush * shotAngleAdjusted +
+             avgTOI_diff * location,
+          data = shots_train,
+          family = "binomial")
+summary(m3)
+
+```
+
+## Step 6 - Evaluate preliminary regression model
+```{r}
+
+cm_test <- confusionMatrix(as.factor(shots_pred_binary_m1),as.factor(shots_test$goal),positive = "1")
+cm_test
+summary(m1)
+
+shots_pred_m3 <- predict(m3, shots_test, type = "response")
+shots_pred_binary_m3 <- ifelse(shots_pred_m3 >= 0.1, 1, 0)
+confusionMatrix(as.factor(shots_pred_binary_m3), as.factor(shots_test$goal), positive = "1")
+
+```
+
